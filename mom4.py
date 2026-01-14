@@ -25,6 +25,22 @@ st.markdown("""
         border-left: 5px solid #E67E22;
     }
     
+    /* [NEW] SOS 작은 정보 카드 스타일 */
+    .sos-card {
+        background-color: #F8F9F9;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #E0E0E0;
+        margin-bottom: 10px;
+        font-size: 14px; /* 글자 크기 축소 */
+        color: #555;
+    }
+    .sos-number {
+        font-weight: bold;
+        color: #E74C3C;
+        font-size: 16px; /* 번호만 살짝 강조 */
+    }
+    
     /* 버튼 스타일 */
     div.stButton > button:first-child {
         background-color: #E67E22;
@@ -57,7 +73,7 @@ st.markdown("""
 
 # --- 1. 데이터 및 헬퍼 함수 ---
 
-# 감정 키워드 (mom.py에서 가져옴)
+# 감정 키워드
 EMOTION_CHIPS = {
     "🔥 불안/공포": ["가슴이 뜀", "식은땀", "안절부절", "압박감", "막막함"],
     "💧 우울/슬픔": ["무기력", "눈물", "가라앉음", "허무함", "지침"],
@@ -65,7 +81,7 @@ EMOTION_CHIPS = {
     "🌿 평온/긍정": ["다행임", "편안함", "감사함", "기대됨", "차분함"]
 }
 
-# 따뜻한 피드백 (mom3.py에서 가져옴)
+# 따뜻한 피드백
 def get_warm_feedback():
     quotes = [
         "당신의 감정은 틀리지 않았습니다. 그저 날씨처럼 지나가는 중입니다. ☁️",
@@ -87,7 +103,7 @@ with st.sidebar:
     menu = st.radio("메뉴 선택", ["📝 오늘의 마음 기록", "📊 AI 심리 분석", "🚨 SOS 위기 지원"])
     st.divider()
     
-    # 미니 대시보드 (New Feature)
+    # 미니 대시보드
     if st.session_state.journal_logs:
         st.caption(f"누적 기록: {len(st.session_state.journal_logs)}건")
         last_log = st.session_state.journal_logs[-1]
@@ -100,7 +116,7 @@ with st.sidebar:
 st.markdown("<div class='main-header'>AI 솔빙 스트레스: 마음 관찰 일기</div>", unsafe_allow_html=True)
 st.write(get_warm_feedback())
 
-# [TAB 1] 마음 기록 (mom.py + mom2.py 통합)
+# [TAB 1] 마음 기록
 if menu == "📝 오늘의 마음 기록":
     col1, col2 = st.columns([1, 1])
     
@@ -109,7 +125,7 @@ if menu == "📝 오늘의 마음 기록":
         thought_input = st.text_area("지금 머릿속을 맴도는 생각이나 상황은 무엇인가요?", height=100, 
                                      placeholder="예: 내일 발표가 있는데 망칠까 봐 너무 걱정된다.")
         
-        # 인지 라벨링 (mom2.py 기능)
+        # 인지 라벨링
         st.markdown("<b>🏷️ 이 생각에 이름표를 붙여볼까요?</b>", unsafe_allow_html=True)
         label_type = st.radio("생각의 종류", ["미래에 대한 불안 (What if)", "과거에 대한 후회 (If only)", "현재의 단순 사실", "해결 가능한 문제"], horizontal=True)
         st.markdown("</div>", unsafe_allow_html=True)
@@ -117,7 +133,7 @@ if menu == "📝 오늘의 마음 기록":
     with col2:
         st.markdown("<div class='card'><h4>❤️ 2. 감정과 감각 확인</h4>", unsafe_allow_html=True)
         
-        # 감정 칩 선택 (mom.py 기능)
+        # 감정 칩 선택
         selected_emotions = []
         st.write("지금 느껴지는 감정 단어들을 선택해주세요.")
         for category, keywords in EMOTION_CHIPS.items():
@@ -155,36 +171,35 @@ if menu == "📝 오늘의 마음 기록":
         else:
             st.error("생각과 감정을 최소 하나 이상 입력해주세요.")
 
-    # 최근 기록 보기 (Expander)
+    # 최근 기록 보기
     st.divider()
     st.subheader("📂 최근 기록 모아보기")
     if st.session_state.journal_logs:
-        for log in reversed(st.session_state.journal_logs[-3:]): # 최근 3개만
+        for log in reversed(st.session_state.journal_logs[-3:]):
             with st.expander(f"📌 {log['time']} | {log['thought'][:20]}..."):
                 st.write(f"**🏷️ 라벨:** {log['label']}")
                 st.write(f"**❤️ 감정:** {', '.join(log['emotions'])} (농도: {log['intensity']}%)")
                 st.write(f"**🕵️ 관찰:** {log['observer']}")
 
-# [TAB 2] AI 심리 분석 (mom3.py 확장 + 시각화 추가)
+# [TAB 2] AI 심리 분석
 elif menu == "📊 AI 심리 분석":
     if not st.session_state.journal_logs:
         st.warning("분석할 데이터가 없습니다. '오늘의 마음 기록' 탭에서 먼저 기록을 남겨주세요.")
     else:
         st.markdown("### 📈 마음 건강 대시보드")
         
-        # [New] 감정 농도 변화 그래프 (데이터 시각화)
+        # 감정 농도 변화 그래프
         df = pd.DataFrame(st.session_state.journal_logs)
         st.line_chart(df, x="time", y="intensity", color="#E67E22")
         st.caption("최근 감정 농도의 변화 추이입니다. 급격히 높아지는 구간을 유의하세요.")
 
         st.divider()
 
-        # AI 분석 리포트 (mom3.py 기능 고도화)
+        # AI 분석 리포트
         if st.button("🧠 AI 정밀 분석 실행"):
             with st.spinner("임상 데이터를 기반으로 분석 중입니다... (CBT 프로토콜 적용)"):
-                time.sleep(2) # 시뮬레이션 딜레이
+                time.sleep(2)
             
-            # 데이터 기반 가상 진단 로직 (단순화)
             recent_log = st.session_state.journal_logs[-1]
             main_emotion = recent_log['emotions'][0] if recent_log['emotions'] else "알 수 없음"
             
@@ -200,24 +215,40 @@ elif menu == "📊 AI 심리 분석":
                 <ul>
                     <li><b>즉시 처방:</b> 4-7-8 호흡법을 3회 실시하여 신체 감각({recent_log['sensation'] or '긴장'})을 이완시키세요.</li>
                     <li><b>인지 훈련:</b> '{recent_log['observer']}'라고 적으신 내용을 소리 내어 3번 읽어보세요. 내 생각이 사실이 아님을 뇌에 인지시키는 과정입니다.</li>
-                    <li><b>행동 미션:</b> 지금 당장 해결할 수 없는 걱정은 '걱정 상자'에 넣어두고, 10분간 산책을 하세요.</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
 
-# [TAB 3] SOS 위기 지원 (사업계획서 반영 신규 기능)
+# [TAB 3] SOS 위기 지원 (디자인 수정: 글자 크기 축소)
 elif menu == "🚨 SOS 위기 지원":
     st.markdown("<div class='card' style='border-left: 5px solid #E74C3C;'>", unsafe_allow_html=True)
     st.error("### 혼자 감당하기 힘드신가요?")
-    st.write("지금 즉시 전문가의 도움이 필요하다면 아래 기관에 연락하세요. 당신은 혼자가 아닙니다.")
+    st.markdown("<div style='font-size:14px; margin-bottom:15px;'>지금 전문가의 도움이 필요하다면 아래 기관에 연락하세요. <b>비밀은 100% 보장됩니다.</b></div>", unsafe_allow_html=True)
     
+    # [수정됨] 작고 깔끔한 HTML 카드로 변경 (st.info 대신)
     col1, col2 = st.columns(2)
     with col1:
-        st.info("**📞 자살예방 상담전화**\n# 109 (24시간)")
-        st.info("**📞 정신건강 위기상담전화**\n# 1577-0199")
+        st.markdown("""
+        <div class="sos-card">
+            📞 <b>자살예방 상담전화</b><br>
+            <span class="sos-number">109</span> (24시간)
+        </div>
+        <div class="sos-card">
+            📞 <b>정신건강 위기상담</b><br>
+            <span class="sos-number">1577-0199</span>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.info("**🏥 가까운 정신건강복지센터 찾기**\n보건복지부 홈페이지 참조")
-        st.info("**💬 청소년 모바일 상담**\n'다 들어줄 개' 앱")
+        st.markdown("""
+        <div class="sos-card">
+            🏥 <b>가까운 센터 찾기</b><br>
+            보건복지부 홈페이지 참조
+        </div>
+        <div class="sos-card">
+            💬 <b>청소년 모바일 상담</b><br>
+            '다 들어줄 개' 앱
+        </div>
+        """, unsafe_allow_html=True)
     
     st.divider()
     st.subheader("🧘 긴급 안정화 (Grounding)")
